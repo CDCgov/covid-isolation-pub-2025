@@ -1,0 +1,95 @@
+overall_parameters:
+  seed : 123 # Random seed used throughout the pipeline
+  # Fraction of each symptom category above one person kept when running model in development mode.
+  # Even when this value is set to 0, the model will run with one person in each symptom category.
+  # Used in 02_fit_viral_kinetics_by_symp_cat.R
+  development_dataset_subset: 0.01
+stan_fit_parameters:
+  # All of these parameters are used in 02_fit_viral_kinetics_by_symp_cats.R
+  warmup: 2000 # Number of MCMC warmup iterations
+  MCMC_iterations: 4000 # Number of total MCMC iterations (including warmup iterations)
+  # The next two parameters are internal MCMC parameters
+  adapt_delta: 0.999 # We set adapt_delta high to deal with a challenging posterior
+  max_treedepth: 15 # Same as what is used in Kissler et al.
+global_data_markers:
+  # We assign markers to help denote special values in the data (i.e., missing viral load, VL below LOD, etc.)
+  # We want to have markers for the special values in the data so that we can mark them consistently across datasets
+  # We use the following pattern for our _markers_ of special values in the data:
+  # the marker for a skipped_test > loq_upper > data values > loq_lower > lod
+  # All of these parameters are not used in the pipeline code but rather in the R package functions
+  # In particular, they are used in `create_stan_variables` and `stan_preprocess` where the parameters
+  # config is provided as an input and the relevant values are extracted from it
+  lod: -10 # Marker for logVL of PCR results labeled as "negative" (i.e., below PCR limit of detection/LOD).
+  loq_lower: 0 # Marker for logVL of a PCR result that was positive but no VL was available
+  # (meaning result was below LOQ but above the study's LOD)
+  loq_upper: 99 # Marker for logVL of a PCR result that was positive but the VL was above the range that
+  # could be quantified reliably by the RT-PCR standard
+  skipped_test: 100 # Marker for logVL of a skipped test (instead of NA)
+  symptomatic: 1 # Marker for symptomatic individuals
+  antigen_missing: -1 # Marker for antigen positivity result of a missing antigen test (instead of NA)
+  culture_missing: -1 # Marker for culture positivity result of a missing culture assay (instead of NA)
+  # This one parameter is called in 01_prepare, 02_fit, 03_extract, 04_subsample and many figures
+  # because it is used to identify the symptom categories that are used in the analysis
+  symptom_categories: [1, 2, 3, 4] # List of symptom categories over which we run the model
+RVTN:
+  # These parameters are used in `stan_preprocess`
+  lod: 1.5 # The RT-PCR limit of detection in logVL (according to laboratory expert co-author)
+  loq_lower: 3. # The RT-PCR lower limit of quantification (above which VL is quantifiable) in logVL (according to protocol)
+  loq_lower_marker: 1.5 # This is the marker RVTN has used for logVL values that are below the LOQ but above the LOD
+  participant_type_keep: [2] # This is the id used in ETL for RVTN contacts with a 1 being for index cases
+INHERENT:
+  # These parameters are used in `stan_preprocess`
+  lod: 2. # RT-PCR limit of detection in logVL (according to lab co-authors)
+  loq_lower: 4. # RT-PCR lower limit of quantification (above which VL is quantifiable) in logVL (according to lab co-authors)
+  loq_lower_marker: 0 # This is the marker we use in ETL for INHERENT for logVL values that are below the lower LOQ but above the LOD
+  loq_upper: 9. # RT-PCR upper limit of quantification (above which VL is not quantifiable) in logVL (according to protocol)
+  participant_type_keep: [3] # This is the id used for nursing home staff with a 4 being nursing home residents.
+prior_midpoint_values:
+  # These parameters are used in `create_stan_variables`
+  # For the parameters that are modeled using the non-centered implementation,
+  # we need to specify the value around which the individual-level distributions are
+  # centered
+  # That midpoint is fit in the Stan model -- these values are our prior on that midpoint
+  dp: 10 # Prior mean peak viral load (above LOD) (Kissler uses Ct of 20)
+  wp: 5 # Prior mean proliferation time (Kissler uses 5)
+  wr: 11 # Prior mean clearance time (Kissler uses 12)
+prior_distribution_parameters:
+  # These parameters are used in `create_stan_variables`
+  tp_prior: [0., 1.] # Mean and std of the normal prior on mean peak VL timing wrt to symptom onset
+  tp_std_prior: [1., 0.1] # Mean and std of the normal prior on std of the peak VL timing wrt to symptom onset across individuals
+  sigma_prior: [0., 0.5] # Mean and std of the truncated normal prior on logVL measurement noise (Kissler: 0, 0.5)
+  prior_sd: 0.5 # Std of truncated normal prior on individual level variability in pooled parameters (Kissler: 0.25 or 0.5)
+  antigen_50_prior: [5, 1] # Mean and std of the normal prior on antigen_50
+  culture_50_prior: [5, 1] # Mean and std of the normal prior on culture_50
+  culture_beta_prior: [0, 1] # Mean and std of the normal prior on culture_beta
+  si_shape_prior: [0, 1] # Mean and std of the truncated normal prior on si_shape (the Weibull shape)
+  si_beta_0_prior: [0, 1] # Mean and std of the normal prior on si_beta_0 (the log baseline Weibull scale)
+  si_beta_wr_prior: [0, 1] # Mean and std of the normal prior on si_beta_wr (i.e., coefficient of association between clearance and symptom improvement)
+sub_sample_parameters:
+  # Used in 04_subsample and 06_create
+  samples_per_symp_cat: 10000 # Number of Stan parameter sets/synthetic individuals per symptom category on which we run the intervention model
+scenario_parameters:
+  infectiousness_integration_dt: 0.01 # The time step for integrating the infectiousness curve
+  minimum_days_before_symptom_onset_considered: -10
+  max_si: 28 # Maximum symptom improvement time
+  # The rest of the parameters in this section and their values are those used in the main intervention model analysis
+  infec_threshold: 1.5 # The minimum logVL for someone to be considered "infectious"
+  infect_transform: "logVL" # The functional relationship used to relate VL to relative infectiousness
+  test_count: 2 # How many antigen tests someone gets when simulating the previous guidance
+  test_interval: 2 # The time between subsequent antigen tests when there is more than one test when simulating the previous guidance
+  iso_lag: 0 # How many days after symptom onset someone starts isolating
+  min_iso_days_mild: 5 # Minimum number of days someone isolates if they have mild symptoms (previous guidance)
+  min_iso_days_moderate: 10 # Minimum number of days someone isolates if they have moderate symptoms (previous guidance)
+  min_total_precaution_days: 10 # Minimum number of days someone must take precautions (isolation + post-isolation) (previous guidance)
+  min_post_iso_days: 5 # Minimum number of days someone must take post-isolation precautions after symptoms improve (updated guidance)
+  iso_eff: 0.9 # Efficacy of isolation in reducing transmission potential
+  post_iso_eff: 0.5 # Efficacy of post-isolation precautions in reducing transmission potential
+  analysis: "main"
+  label: "main"
+sens_list: # Values of the parameters we vary in the sensitivity analysis
+  infec_threshold: [0.]
+  infect_transform: ["antigen", "culture", "logVL_x_antigen", "logVL_x_culture"]
+  iso_eff: [1., 0.7]
+  post_iso_eff: [0.25, 0.]
+  test_count: [1]
+  iso_lag: [2]

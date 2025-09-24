@@ -1,0 +1,31 @@
+name: testing
+
+on: [pull_request, workflow_dispatch]
+
+jobs:
+  test_dir:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install apt packages
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y build-essential libglpk40 libudunits2-dev libgdal-dev libgeos-dev libproj-dev libglpk-dev libxml2-dev libharfbuzz-dev libfribidi-dev
+
+      - name: setup r
+        uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.4.1'
+
+      - name: Install dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: 'any::rcmdcheck, any::remotes, any::devtools, any::styler, any::dplyr, any::readr, any::ggplot2, any::purrr, any::tidyr, any::tidyselect, any::tibble, any::DiscreteWeibull, any::rstan, any::testthat'
+          dependencies: '"hard"'
+
+      - name: Check
+        run: rcmdcheck::rcmdcheck(path = "isolation", args = c("--no-manual", "--no-examples"), error_on = "error")
+        shell: Rscript {0}

@@ -1,0 +1,43 @@
+##=========================================================#
+## Authors: CMEI Team
+## Isolation Guidance Model
+##=========================================================#
+
+PREPROCESS_DIR :=
+
+##=========================================================#
+## ETL ---------------------
+##=========================================================#
+RVTN_DEPS :=
+INHERENT_DEPS :=
+RVTN_FILE :=
+RVTN_PATIENT_FILE :=
+INHERENT_FILE :=
+
+##===========================================================##
+## STAN---------------
+##===========================================================##
+##Automatically configured variables
+STAN_PROCESSED_FILE :=
+STAN_FIT_DIR :=
+STAN_POST_DIR :=
+STAN_POST_FILE :=
+STAN_FIT_FILE :=
+STAN_SAMPLE_FILE :=
+
+##===========================================================##
+## Scenarios---------------
+##===========================================================##
+##Automatically configured variables
+SCENARIOS_DIR :=
+GUIDANCE_FILE :=
+OVERALL_GUIDANCE_FILE :=
+
+## Dependencies
+SCENARIO_DEPS := analysis/parameters.yml $(PRODS_CONFIG) $(RLIB_FILES)\
+	$(STAN_POSTERIORS) $(STAN_SAMPLES)
+
+
+##===========================================================##
+## figs and tables---------------
+##===========================================================##

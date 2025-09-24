@@ -1,0 +1,29 @@
+input_data: # these are the raw data from the studies
+  RVTN: mooring_RVTNfulldat2024-06-20.csv
+  RVTN_lab: mooring_RVTNddlabdat2024-06-20.csv
+  INHERENT: NHPHRN INHERENT Public Use Files and Data Dictionary.xlsx
+preprocessed_data: # outputs of etl
+  directory: preprocessing_outputs
+  RVTN: RVTN_household_preprocessed_with_culture.csv
+  RVTN_patient: RVTN_household_preprocessed_with_culture_patient_level.csv
+  INHERENT: INHERENT_nh_preprocessed_with_culture.csv
+vl_model:
+  run_name: joint_VL_symp_stan_fit_cat
+  full_preprocessed_data_output: joined_inherent_rvtn_full.csv
+  stan_ready_preprocessed_data_output: stan_joined_inherent_rvtn_full.csv
+  consort_diagram: _consort.mmd
+  stan_fit_directory: viral_kinetics_fits
+  stan_posterior_directory: viral_kinetics_posteriors
+  posterior_individual: VL_symp_cat_individualized.csv
+  posterior_pooled: VL_symp_cat_pooled.csv
+  posterior_sampled: VL_symp_cat_sampled.csv
+  test_name: synthetic_data_VL_symp_fit
+scenarios:
+  symp_cat_weights: symp_cat_weights.csv
+  run_name: joint_manuscript_symp_cat
+  directory: model_scenarios
+  intervention_params: intervention_params.csv
+  compare_guidance_df: compare_guidance_df.csv
+  overall_compare_guidance_df: overall_compare_guidance_df.csv
+products:
+  directory: products
