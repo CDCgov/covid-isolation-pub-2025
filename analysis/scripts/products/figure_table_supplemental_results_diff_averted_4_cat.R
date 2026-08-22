@@ -162,14 +162,14 @@ mean_diff_by_symp_cat_wt_I_t <- main_symp_cat_df |>
 # set up colors for antigen detection probability
 
 grey_blue_solid <- sequential_hcl(
-  n = 100, h = 270,
+  n = 100, h = 250,
   c1 = 0, c2 = 150, cmax = 150,
-  l1 = 50, l2 = 50, alpha = 1, power = 1
+  l1 = 70, l2 = 70, alpha = 1, power = 1
 )
 grey_blue <- sequential_hcl(
-  n = 100, h = 270,
+  n = 100, h = 250,
   c1 = 0, c2 = 150, cmax = 150,
-  l1 = 50, l2 = 50, alpha = 0.07, power = 1
+  l1 = 70, l2 = 70, alpha = 0.1, power = 1
 )
 
 main_symp_cat_df <- main_symp_cat_df |>

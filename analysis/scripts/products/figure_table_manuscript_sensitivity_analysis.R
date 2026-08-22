@@ -57,6 +57,14 @@ sens_analysis_fig_path_png <- file.path(
   fig_path,
   "figure_manuscript_sensitivity_analysis.png"
 )
+sens_analysis_fig_path_eps <- file.path(
+  fig_path,
+  "figure_manuscript_sensitivity_analysis.eps"
+)
+sens_analysis_fig_path_cmyk_eps <- file.path(
+  fig_path,
+  "figure_manuscript_sensitivity_analysis_cmyk.eps"
+)
 if (!dir.exists(fig_path)) {
   dir.create(fig_path, recursive = TRUE)
 }
@@ -414,3 +422,27 @@ png(
 sens_analysis_fig_fx()
 
 dev.off()
+
+cairo_ps(
+  filename = sens_analysis_fig_path_eps,
+  width = 6.5,
+  height = 8,
+  family = "Arial"
+)
+
+sens_analysis_fig_fx()
+
+dev.off()
+
+tryCatch(system2(
+  command = "gs",
+  args = c(
+    "-dNOPAUSE",
+    "-dBATCH",
+    "-sDEVICE=eps2write",
+    "-sColorConversionStrategy=CMYK",
+    "-dProcessColorModel=/DeviceCMYK",
+    paste0("-sOutputFile=", path.expand(sens_analysis_fig_path_cmyk_eps)),
+    sens_analysis_fig_path_eps
+  )
+))
