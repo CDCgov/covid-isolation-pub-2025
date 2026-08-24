@@ -434,6 +434,7 @@ sens_analysis_fig_fx()
 
 dev.off()
 
+# convert the EPS to CMYK EPS using Ghostscript
 tryCatch(system2(
   command = "gs",
   args = c(

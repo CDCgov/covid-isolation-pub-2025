@@ -400,6 +400,7 @@ main_symp_cat_boxplot_list <- main_symp_cat_fig_fx()
 
 dev.off()
 
+# convert the EPS to CMYK EPS using Ghostscript
 tryCatch(system2(
   command = "gs",
   args = c(
