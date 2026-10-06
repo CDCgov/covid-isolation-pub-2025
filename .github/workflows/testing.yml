@@ -20,11 +20,8 @@ jobs:
         with:
           r-version: '4.4.1'
 
-      - name: Install dependencies
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: 'any::rcmdcheck, any::remotes, any::devtools, any::styler, any::dplyr, any::readr, any::ggplot2, any::purrr, any::tidyr, any::tidyselect, any::tibble, any::DiscreteWeibull, any::rstan, any::testthat'
-          dependencies: '"hard"'
+      - name: Restore renv dependencies
+        uses: r-lib/actions/setup-renv@v2
 
       - name: Check
         run: rcmdcheck::rcmdcheck(path = "isolation", args = c("--no-manual", "--no-examples"), error_on = "error")

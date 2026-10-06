@@ -42,15 +42,15 @@ if (!dir.exists(file.path(
   )
 }
 
-# get and set seed; randomness in this script only relevant to visualization
-# and does not affect any calculations
+# load parameters config to get the seed
+# randomness in this script only relevant to visualization
+# seed set below before each call of the plotting function
+# to ensure reproducibility of the plots across formats (pdf, png, eps)
 
 parameters_config <- yaml::read_yaml(file.path(
   "analysis",
   "parameters.yml"
 ))
-
-set.seed(parameters_config$overall_parameters$seed)
 
 # create paths for input to this script (output from 05_run_ind_scenarios.R)
 
@@ -76,6 +76,18 @@ main_symp_cat_fig_path_png <- file.path(
   results_dir,
   products_config$products$directory,
   "figure_manuscript_results_diff_averted_3_cat.png"
+)
+
+main_symp_cat_fig_path_eps <- file.path(
+  results_dir,
+  products_config$products$directory,
+  "figure_manuscript_results_diff_averted_3_cat.eps"
+)
+
+main_symp_cat_fig_path_cmyk_eps <- file.path(
+  results_dir,
+  products_config$products$directory,
+  "figure_manuscript_results_diff_averted_3_cat_cmyk.eps"
 )
 
 supp_symp_cat_si_time_fig_path <- file.path(
@@ -192,14 +204,14 @@ mean_diff_by_si_time_wt_I_t <- main_symp_cat_df |>
 # set up colors for antigen detection probability
 
 grey_blue_solid <- sequential_hcl(
-  n = 100, h = 270,
+  n = 100, h = 250,
   c1 = 0, c2 = 150, cmax = 150,
-  l1 = 50, l2 = 50, alpha = 1, power = 1
+  l1 = 70, l2 = 70, alpha = 1, power = 1
 )
 grey_blue <- sequential_hcl(
-  n = 100, h = 270,
+  n = 100, h = 250,
   c1 = 0, c2 = 150, cmax = 150,
-  l1 = 50, l2 = 50, alpha = 0.07, power = 1
+  l1 = 70, l2 = 70, alpha = 0.1, power = 1
 )
 
 main_symp_cat_df <- main_symp_cat_df |>
@@ -245,6 +257,20 @@ main_symp_cat_fig_fx <- function() {
   par(mar = c(1, 0, 0, 0))
 
   plot(
+    x = NA,
+    y = NA,
+    yaxt = "n", ylab = NA, pch = 16, cex = 0.5,
+    ylim = c(y_min, y_max), xlim = c(x_min, x_max),
+    xlab = NA, cex.axis = 0.7
+  )
+
+  png("raster_scatter.png",
+    width = par("pin")[1], height = par("pin")[2],
+    units = "in", res = 600
+  )
+  par(mar = c(0, 0, 0, 0), yaxs = "i")
+
+  plot(
     x = main_symp_cat_df$diff_averted,
     y = 4 - as.numeric(main_symp_cat_df$symp_type_cat) +
       runif(
@@ -254,8 +280,18 @@ main_symp_cat_fig_fx <- function() {
     col = grey_blue[main_symp_cat_df$ant_det_col_level],
     yaxt = "n", ylab = NA, pch = 16, cex = 0.5,
     ylim = c(y_min, y_max), xlim = c(x_min, x_max),
-    xlab = NA, cex.axis = 0.7
+    xaxt = "n", xlab = NA, bty = "n"
   )
+
+  dev.off()
+
+  rasterImage(
+    png::readPNG("raster_scatter.png"),
+    xleft = par("usr")[1], xright = par("usr")[2],
+    ybottom = par("usr")[3], ytop = par("usr")[4]
+  )
+
+  file.remove("raster_scatter.png")
 
   main_symp_cat_boxplot_list <- boxplot(
     formula =
@@ -337,6 +373,7 @@ pdf(
   width = 6.5, height = 7
 )
 
+set.seed(parameters_config$overall_parameters$seed)
 main_symp_cat_boxplot_list <- main_symp_cat_fig_fx()
 
 dev.off()
@@ -346,9 +383,36 @@ png(
   width = 6.5, height = 7, units = "in", res = 300
 )
 
+set.seed(parameters_config$overall_parameters$seed)
 main_symp_cat_boxplot_list <- main_symp_cat_fig_fx()
 
 dev.off()
+
+cairo_ps(
+  filename = main_symp_cat_fig_path_eps,
+  width = 6.5,
+  height = 7,
+  family = "Arial"
+)
+
+set.seed(parameters_config$overall_parameters$seed)
+main_symp_cat_boxplot_list <- main_symp_cat_fig_fx()
+
+dev.off()
+
+# convert the EPS to CMYK EPS using Ghostscript
+tryCatch(system2(
+  command = "gs",
+  args = c(
+    "-dNOPAUSE",
+    "-dBATCH",
+    "-sDEVICE=eps2write",
+    "-sColorConversionStrategy=CMYK",
+    "-dProcessColorModel=/DeviceCMYK",
+    paste0("-sOutputFile=", path.expand(main_symp_cat_fig_path_cmyk_eps)),
+    main_symp_cat_fig_path_eps
+  )
+))
 
 ### Plot supplementary figure of difference averted by SI time ###
 # differences in transmission potential averted
@@ -359,9 +423,9 @@ dev.off()
 # plotted means are means weighted by total infectiousness
 
 grey_blue <- sequential_hcl(
-  n = 100, h = 270,
+  n = 100, h = 250,
   c1 = 0, c2 = 150, cmax = 150,
-  l1 = 50, l2 = 50, alpha = 0.03, power = 1
+  l1 = 70, l2 = 70, alpha = 0.04, power = 1
 )
 
 y_min <- -3
