@@ -1,4 +1,5 @@
 import os
+import subprocess
 from argparse import ArgumentParser
 
 import matplotlib as mpl
@@ -29,7 +30,7 @@ with open("products_config.yml", "r") as file:
 with open(os.path.join("analysis", "parameters.yml"), "r") as file:
     parameters_config = yaml.safe_load(file)
 
-font = {"family": "Nimbus Roman", "weight": "normal", "size": 22}
+font = {"family": "Arial", "weight": "normal", "size": 22}
 
 mpl.rc("font", **font)
 
@@ -543,3 +544,24 @@ schematic_auc_infectiousness_averted(
 # Save the plot
 fig.savefig(file_out + ".png", format="png", dpi=300, bbox_inches="tight")
 fig.savefig(file_out + ".pdf", format="pdf", dpi=300, bbox_inches="tight")
+pdf_path = os.path.expanduser(file_out + ".pdf")
+tiff_path = os.path.expanduser(file_out + "_cmyk" + ".tif")
+
+try:
+    subprocess.run(
+        [
+            "gs",
+            "-dNOPAUSE",
+            "-dBATCH",
+            "-sDEVICE=tiff32nc",
+            "-sCompression=lzw",
+            "-r600",
+            "-sColorConversionStrategy=CMYK",
+            "-dProcessColorModel=/DeviceCMYK",
+            f"-sOutputFile={tiff_path}",
+            pdf_path,
+        ],
+        check=True,
+    )
+except (FileNotFoundError, subprocess.CalledProcessError) as err:
+    print(f"Ghostscript CMYK TIFF conversion skipped/failed: {err}")
